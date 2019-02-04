@@ -26,12 +26,17 @@ def cl_login():
     login_data = json.loads(r.text)
     return login_data
 
+def cl_auth():
+    return {
+        'Authorization': 'Session {}'.format(cl_login()['sessionId'])
+    }
+
 def get_subprojects(parent_proj_id):
     login_data = cl_login()
     url = CLARIZEN_DATA_QUERY_URL
     querystring = {"q":"""SELECT @Name, TrackStatus.Name, ProjectManager.Name,
             PercentCompleted FROM Project WHERE
             ParentProject='{}'""".format(parent_proj_id)}
-    headers = {'Authorization': "Session {}".format(login_data['sessionId']) }
+    headers = cl_auth()
     response = requests.request("GET", url, headers=headers, params=querystring)
     return json.loads(response.text)
