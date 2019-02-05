@@ -35,28 +35,39 @@ def progress_status(status='On Track', p=0):
         color=c
     )
 
-def circle_graph(p):
+def circle_graph(p, title):
     return dcc.Graph(
         figure=go.Figure(
             data=[
                 go.Pie(
                     values = [p, 100-p],
                     hole=0.8,
-                    showlegend=False
+                    showlegend=False,
+                    textinfo='none',
+                    title={
+                        'text':str(int(p)) + '%',
+                        'font': {
+                            'size':30
+                        }
+                    }
                 )
             ],
             layout = {
+                'title':{
+                    'text':title,
+                },
                 'margin': {
-                    't':10,
-                    'b':10,
-                    'l':10,
-                    'r':10,
-                    'pad':10,
+                    't':40,
+                    'b':20,
+                    'l':20,
+                    'r':20,
+                    'pad':20,
                     'autoexpand':True,
-                }
+                },
+                'piecolorway':['#339966', '#cccccc',],
             }
         ),
         style = {
-            'height': 500
+            'height': 300
         }
     )
