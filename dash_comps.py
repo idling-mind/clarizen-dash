@@ -1,17 +1,11 @@
 import dash_core_components as dcc
 import dash_daq as daq
 import plotly.graph_objs as go
+from helper_functions import status_colour
 
 def indicate(status='On Track'):
-    c = "#00CC96",
-    if status == 'On Track':
-        c = "#00CC96",
-    elif status == 'At Risk':
-        c = "#FDB507",
-    elif status == 'Off Track':
-        c = "#FD3A07"
     return daq.Indicator(
-        color=c,
+        color=status_colour(status),
         value=True
     )
 
@@ -20,7 +14,7 @@ def progress(p):
         value=p/10
     )
 
-def circle_graph(p):
+def circle_graph(p, status='On Track', size=280, fontsize=30):
     return dcc.Graph(
         figure=go.Figure(
             data=[
@@ -29,27 +23,27 @@ def circle_graph(p):
                     hole=0.8,
                     showlegend=False,
                     textinfo='none',
+                    sort=False,
                     title={
                         'text':str(int(p)) + '%',
                         'font': {
-                            'size':30
+                            'size':fontsize
                         }
                     }
                 )
             ],
             layout = {
                 'margin': {
-                    't':20,
-                    'b':20,
-                    'l':20,
-                    'r':20,
-                    'pad':20,
+                    't':0.05*size,
+                    'b':0.05*size,
+                    'l':0.05*size,
+                    'r':0.05*size,
+                    'pad':0.05*size,
                     'autoexpand':True,
                 },
-                'piecolorway':['#339966', '#cccccc',],
+                'piecolorway':[status_colour(status), '#cccccc',],
+                'width':size,
+                'height':size,
             }
         ),
-        style = {
-            'height': 300
-        }
     )

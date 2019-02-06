@@ -42,6 +42,15 @@ def get_subprojects(parent_proj_id):
     response = requests.request("GET", url, headers=headers, params=querystring)
     return json.loads(response.text)
 
+def get_subtasks(parent_id):
+    url = CLARIZEN_DATA_QUERY_URL
+    querystring = {"q":"""SELECT @Name, TrackStatus.Name, ProjectManager.Name,
+            PercentCompleted FROM WorkItem WHERE
+            Parent='{}'""".format(parent_id)}
+    headers = cl_auth()
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    return json.loads(response.text)
+
 def work_items_by_topic(topic):
     """Function to find workitems by topic"""
     headers = cl_auth()
@@ -55,7 +64,8 @@ def work_items_by_topic(topic):
         "fields": [
             "Name", "TrackStatus.Name", 
             "ProjectManager.Name", 
-            "PercentCompleted"
+            "PercentCompleted",
+            "InternalStatus"
         ]
     }
     response = requests.request("POST",
@@ -63,3 +73,14 @@ def work_items_by_topic(topic):
                                 headers=headers,
                                 data=str(req_data))
     return json.loads(response.text)
+
+def strategy_tip_list(topic):
+    tips = work_items_by_topic(topic)
+    for domain in tips['entities']:
+        domain['subprojects'] = get_subprojects(domain['id'])['entities']
+        for tip in domain['subprojects']:
+            tasks = get_subtasks(tip['id'])['entities']
+            for task in tasks:
+                if task['Name'].lower() == 'deliverables':
+                    tip['Deliverables'] = get_subtasks(task['id'])['entities']
+    return tips
