@@ -1,7 +1,9 @@
 import os
 import json
 import requests
-from settings import CLARIZEN_DATA_QUERY_URL, CLARIZEN_LOGIN_URL
+from settings import (CLARIZEN_DATA_QUERY_URL, 
+                      CLARIZEN_LOGIN_URL,
+                      CLARIZEN_RELATIONS_QUERY_URL)
 
 def cl_login():
     """Function to check login to clarizen
@@ -32,11 +34,32 @@ def cl_auth():
     }
 
 def get_subprojects(parent_proj_id):
-    login_data = cl_login()
     url = CLARIZEN_DATA_QUERY_URL
     querystring = {"q":"""SELECT @Name, TrackStatus.Name, ProjectManager.Name,
             PercentCompleted FROM Project WHERE
             ParentProject='{}'""".format(parent_proj_id)}
     headers = cl_auth()
     response = requests.request("GET", url, headers=headers, params=querystring)
+    return json.loads(response.text)
+
+def work_items_by_topic(topic):
+    """Function to find workitems by topic"""
+    headers = cl_auth()
+    # Finding the id for the topic
+    querystring = {"q":"SELECT @Name FROM Topic WHERE Name='{}'".format(topic)}
+    response = requests.request("GET", CLARIZEN_DATA_QUERY_URL, headers=headers, params=querystring)
+    topicid = json.loads(response.text)['entities'][0]['id']
+    req_data = {
+        "entityId":topicid,
+        "relationName":"WorkItems",
+        "fields": [
+            "Name", "TrackStatus.Name", 
+            "ProjectManager.Name", 
+            "PercentCompleted"
+        ]
+    }
+    response = requests.request("POST",
+                                CLARIZEN_RELATIONS_QUERY_URL,
+                                headers=headers,
+                                data=str(req_data))
     return json.loads(response.text)
