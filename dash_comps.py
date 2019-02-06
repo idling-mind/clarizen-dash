@@ -20,22 +20,7 @@ def progress(p):
         value=p/10
     )
 
-def progress_status(status='On Track', p=0):
-    c = "#00CC96",
-    if status == 'On Track':
-        c = "#00CC96",
-    elif status == 'At Risk':
-        c = "#FDB507",
-    elif status == 'Off Track':
-        c = "#FD3A07"
-    
-    return daq.GraduatedBar(
-        max=100,
-        value=p,
-        color=c
-    )
-
-def circle_graph(p, title):
+def circle_graph(p):
     return dcc.Graph(
         figure=go.Figure(
             data=[
@@ -53,11 +38,8 @@ def circle_graph(p, title):
                 )
             ],
             layout = {
-                'title':{
-                    'text':title,
-                },
                 'margin': {
-                    't':40,
+                    't':20,
                     'b':20,
                     'l':20,
                     'r':20,
