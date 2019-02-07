@@ -5,10 +5,13 @@ import dash_html_components as html
 import clarizen
 from dash_comps import indicate, progress, circle_graph
 from helper_functions import status_colour
+from components import number_card
 
 projs = clarizen.get_subprojects("/Project/1nn8h0sy46ic07izfvbk84sm281")
 kpis = clarizen.work_items_by_topic("GAI KPI 2019")
 tips = clarizen.strategy_tip_list("GAI Strategy Domain")
+tipcount = clarizen.tip_count(tips)
+dtotal, dcompleted = clarizen.delivery_count(tips)
 
 app = dash.Dash(__name__)
 
@@ -16,6 +19,11 @@ app.layout = html.Div(className='page', children=[
     html.Div(className='container-fluid', children=[
         html.Div(className='page-header', children=[
             html.H3(className='page-title', children='GAI Strategy Matrix 2019'),
+        ]),
+        html.Div(className='row row-cards', children=[
+            number_card(tipcount, "Number of TIPs"),
+            number_card(dtotal, "Number of Deliverables"),
+            number_card(dcompleted, "Completed Deliverables", progress=dcompleted/dtotal*100),
         ]),
         html.Div(className='row row-cards', children=[
             html.Div(className='col-lg-2', children=[
@@ -39,12 +47,10 @@ app.layout = html.Div(className='page', children=[
                     html.Div(className='card-header', children=[
                         html.H3(className='card-title', children='KPI Progress')
                     ]),
-                    circle_graph(1, 'At Risk'),
+                    circle_graph(30, 'At Risk'),
                 ]),
             ]),
-        ]),
-        html.Div(className='row row-cards row-deck', children=[
-            html.Div(className='col-12', children=[
+            html.Div(className='col-6', children=[
                 html.Div(className='card', children=[
                     html.Div(className='table-responsive', children=[
                         html.Table(className='table table-hover table-outline table-vcenter card-table', children=[
@@ -60,7 +66,7 @@ app.layout = html.Div(className='page', children=[
                         ),
                     ])
                 ])
-            ])
+            ]),
         ]),
         html.Div(className='row row-cards row-deck', children=[
             html.Div(className='col-12', children=[
