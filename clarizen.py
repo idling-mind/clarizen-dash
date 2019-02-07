@@ -44,7 +44,7 @@ def get_subprojects(parent_proj_id):
 
 def get_subtasks(parent_id):
     url = CLARIZEN_DATA_QUERY_URL
-    querystring = {"q":"""SELECT @Name, TrackStatus.Name, ProjectManager.Name,
+    querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name,
             PercentCompleted FROM WorkItem WHERE
             Parent='{}'""".format(parent_id)}
     headers = cl_auth()
@@ -84,3 +84,22 @@ def strategy_tip_list(topic):
                 if task['Name'].lower() == 'deliverables':
                     tip['Deliverables'] = get_subtasks(task['id'])['entities']
     return tips
+
+def tip_count(tips):
+    count = 0
+    for domain in tips['entities']:
+        count += len(domain['subprojects'])
+    return count
+
+def delivery_count(tips):
+    dtotal, dcompleted = 0, 0
+    for domain in tips['entities']:
+        for tip in domain['subprojects']:
+            try:
+                for deliverable in tip['Deliverables']:
+                    dtotal +=1
+                    if deliverable['State']['Name'] == 'Completed':
+                        dcompleted +=1
+            except KeyError:
+                pass
+    return (dtotal, dcompleted)
