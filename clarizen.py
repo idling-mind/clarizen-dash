@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import getpass
 from settings import (CLARIZEN_DATA_QUERY_URL, 
                       CLARIZEN_LOGIN_URL,
                       CLARIZEN_RELATIONS_QUERY_URL)
@@ -18,22 +19,30 @@ def cl_login():
             return(login_data)
 
     username = input("Enter Clarizen Username: ")
-    password = input("Enter Clarizen password: ")
+    password = getpass.getpass(prompt="Enter Clarizen password: ")
     r = requests.post(CLARIZEN_LOGIN_URL,
             data = {'userName':username, 'password':password})
 
-    with open("login_cache.txt", "w") as f:
-        f.write(r.text)
-    
     login_data = json.loads(r.text)
-    return login_data
+    # Checking if login was successful
+    if 'sessionId' in login_data:
+        # Write the login_cache file
+        with open("login_cache.txt", "w") as f:
+            f.write(r.text)
+        return login_data
+    else:
+        raise Exception("Login Failed!")
+
+    
 
 def cl_auth():
+    """Function to return the request header with login information"""
     return {
         'Authorization': 'Session {}'.format(cl_login()['sessionId'])
     }
 
 def get_subprojects(parent_proj_id):
+    """Get all the subprojects under a given project id"""
     url = CLARIZEN_DATA_QUERY_URL
     querystring = {"q":"""SELECT @Name, TrackStatus.Name, ProjectManager.Name,
             PercentCompleted FROM Project WHERE
@@ -43,6 +52,7 @@ def get_subprojects(parent_proj_id):
     return json.loads(response.text)
 
 def get_subtasks(parent_id):
+    """Get all subtasks for a given task/project id"""
     url = CLARIZEN_DATA_QUERY_URL
     querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name,
             PercentCompleted FROM WorkItem WHERE
