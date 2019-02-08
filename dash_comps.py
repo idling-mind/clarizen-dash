@@ -22,6 +22,7 @@ def circle_graph(p, status='On Track', size=280, fontsize=30):
                     values = [p, 100-p],
                     hole=0.8,
                     showlegend=False,
+                    hoverinfo='none',
                     textinfo='none',
                     sort=False,
                     title={
