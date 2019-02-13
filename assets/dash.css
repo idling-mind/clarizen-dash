@@ -1,0 +1,12 @@
+.modebar {
+    display: none !important
+}
+.ticker ul {
+    padding: 0;
+    width: 100%;
+}
+
+.ticker li {
+    list-style: none;
+    padding: 0;
+}
