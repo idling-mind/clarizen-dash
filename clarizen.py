@@ -1,4 +1,6 @@
 import os
+import datetime
+from dateutil import parser
 import json
 import requests
 import getpass
@@ -54,7 +56,7 @@ def get_subprojects(parent_proj_id):
 def get_subtasks(parent_id):
     """Get all subtasks for a given task/project id"""
     url = CLARIZEN_DATA_QUERY_URL
-    querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name,
+    querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name, DueDate
             PercentCompleted FROM WorkItem WHERE
             Parent='{}'""".format(parent_id)}
     headers = cl_auth()
@@ -113,3 +115,22 @@ def delivery_count(tips):
             except KeyError:
                 pass
     return (dtotal, dcompleted)
+
+def prio_tips(tips):
+    """ Function to return the priority tips for the next 30 days """
+    priotips = []
+    for domain in tips['entities']:
+        for tip in domain['subprojects']:
+            try:
+                for deliverable in tip['Deliverables']:
+                    delta = parser.parse(deliverable['DueDate']) - datetime.datetime.now()
+                    if delta.days < 30:
+                        priotips.append({
+                            'TipName':tip['Name'],
+                            'ProjectManager': tip['ProjectManager']['Name'],
+                            'DeliverableName': deliverable['Name'],
+                            'DueDate': deliverable['DueDate'],
+                        })
+            except KeyError:
+                pass
+    return tips
