@@ -56,7 +56,7 @@ def get_subprojects(parent_proj_id):
 def get_subtasks(parent_id):
     """Get all subtasks for a given task/project id"""
     url = CLARIZEN_DATA_QUERY_URL
-    querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name, DueDate
+    querystring = {"q":"""SELECT @Name, TrackStatus.Name, State.Name, DueDate,
             PercentCompleted FROM WorkItem WHERE
             Parent='{}'""".format(parent_id)}
     headers = cl_auth()
@@ -121,16 +121,37 @@ def prio_tips(tips):
     priotips = []
     for domain in tips['entities']:
         for tip in domain['subprojects']:
+            prio_tip = {}
+            prio_tip['TipName'] = tip['Name']
+            prio_tip['ProjectManager'] = tip['ProjectManager']['Name']
+            prio_tip['Deliverables'] = []
+            prio_flag = False # Flag to check if there are priority deliverables
+            # If prio_flag is False, this tip will not be added to the list.
             try:
                 for deliverable in tip['Deliverables']:
+                    if float(deliverable['PercentCompleted']) == 100:
+                        continue
+                    
+                    # delta will calculate the number of days till due date
                     delta = parser.parse(deliverable['DueDate']) - datetime.datetime.now()
                     if delta.days < 30:
-                        priotips.append({
-                            'TipName':tip['Name'],
-                            'ProjectManager': tip['ProjectManager']['Name'],
+                        prio_flag = True
+                        if delta.days < 0:
+                            status = 'Off Track'
+                            due = "{} days overdue".format(abs(delta.days))
+                        elif delta.days < 7:
+                            status = 'At Risk'
+                            due = "Due in {} days".format(abs(delta.days))
+                        else:
+                            status = 'On Track'
+                            due = "Due in {} days".format(abs(delta.days))
+                        prio_tip['Deliverables'].append({
                             'DeliverableName': deliverable['Name'],
-                            'DueDate': deliverable['DueDate'],
+                            'Status': status,
+                            'Due': due,
                         })
             except KeyError:
                 pass
-    return tips
+            if prio_flag:
+                priotips.append(prio_tip)
+    return priotips

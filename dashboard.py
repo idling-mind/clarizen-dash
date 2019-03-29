@@ -8,7 +8,7 @@ from flask_caching import Cache
 import clarizen
 from dash_comps import indicate, progress, circle_graph
 from helper_functions import status_colour
-from components import number_card, tip_card
+from components import number_card, tip_card, tip_deliverable_card
 
 app = dash.Dash(__name__)
 
@@ -17,16 +17,19 @@ cache = Cache(app.server, config={
     'CACHE_DIR': 'cache-directory'
 })
 
-TIMEOUT = 360
+TIMEOUT = 3600
 
 @cache.memoize(timeout=TIMEOUT)
 def tips_data():
     projs = clarizen.work_items_by_topic("GAI Strategy Domain")
-    print(projs)
+    print("Extracted Domains")
     kpis = clarizen.work_items_by_topic("GAI KPI 2019")
     mkpis = clarizen.work_items_by_topic("GAI Manager KPI 2019")
+    print("Extracted KPIs")
     tips = clarizen.strategy_tip_list("GAI Strategy Domain")
+    print("Extracted TIPs")
     prio_tips = clarizen.prio_tips(tips)
+    print("Extracted priority deliverables")
     tipcount = clarizen.tip_count(tips)
     dtotal, dcompleted = clarizen.delivery_count(tips)
     return {
@@ -81,20 +84,11 @@ def dash_main():
                             ]),
                         ]) for domain in tips_data()['projs']['entities']
                     ] + [
-                        html.Div(className='card', children=[
-                            html.Div(className='card-header', children="Priority Deliverables"),
-                            html.Div(className='table-responsive', children=[
-                                html.Table(className='table table-hover table-outline table-vcenter card-table', children=[
-                                    html.Tr([
-                                        html.Th(x) for x in ['Status', 'Deliverable', 'TIP', 'Manager', 'Due']    
-                                    ])] +
-                                    [html.Tr([
-                                        html.Td(indicate(x['Status'])),
-                                        html.Td(x['DeliverableName']),
-                                        html.Td(x['TipName']),
-                                        html.Td(x['ProjectManager']),
-                                        html.Td(x['Due'], style={'color':status_colour(x['Status'])}),
-                                    ]) for x in tips_data()['prio_tips']
+                        html.Div(className='col-lg-12', children=[
+                            html.Div(className='card', children=[
+                                html.Div(className='card-header', children="Priority Deliverables"),
+                                html.Ul(className='list-unstyled list-separated', children=[
+                                    html.Li(className='list-separated-item', children=[tip_deliverable_card(x)]) for x in tips_data()['prio_tips']
                                 ]),
                             ]),
                         ]),
