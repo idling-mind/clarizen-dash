@@ -3,6 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 from dash_comps import circle_graph, indicate
+from helper_functions import status_colour
 
 def number_card(n, title, progress=None, pcolor='green'):
     if progress:
@@ -45,3 +46,19 @@ def tip_card(tip, domain):
             html.Span(className='badge badge-default', children=[domain]),
         ]),
     ], style={'padding': '10px'})
+
+def tip_deliverable_card(tip):
+    """ Card for showing the priority deliverables """
+    return html.Div(className='row align-items-center', children=[
+        html.Div(className='col', children=[
+            html.B(tip['TipName']), 
+            html.Small(className='d-block item-except text-sm text-muted', children=[tip['ProjectManager']]),
+            html.Div(children=[
+                html.Div(className='row align-items-center', children=[
+                    html.Div(className='col-auto', children=[indicate(deliverable['Status'])]),
+                    html.Div(className='col-auto', children=[deliverable['DeliverableName']]),
+                    html.Div(className='col-auto', children=[deliverable['Due']], style={'color':status_colour(deliverable['Status'])}),
+                ], style={'padding': '5px'}) for deliverable in tip['Deliverables']
+            ], style={'padding-left':'5px'}),
+        ], style={'margin-left': '10px'}),
+    ])
