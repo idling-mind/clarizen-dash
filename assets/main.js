@@ -5,7 +5,7 @@ $(document).ready(function(){
             speed: 'slow',
             interval: 5000,
             height: 'auto',
-            visible: 4,
+            visible: 7,
             mousePause: 0,
         }).data('easyTicker');
         $('.ticker').show();
