@@ -43,7 +43,7 @@ def tip_card(tip, domain):
             html.Div(children=[
                 "{} deliverables of {} completed".format(dcompleted, dtotal),
             ]),
-            html.Span(className='badge badge-default', children=[domain]),
+            html.Span(className='badge bg-info', children=[domain]),
         ]),
     ], style={'padding': '10px'})
 
@@ -56,8 +56,16 @@ def tip_deliverable_card(tip):
             html.Div(children=[
                 html.Div(className='row align-items-center', children=[
                     html.Div(className='col-auto', children=[indicate(deliverable['Status'])]),
-                    html.Div(className='col-auto', children=[deliverable['DeliverableName']]),
-                    html.Div(className='col-auto', children=[deliverable['Due']], style={'color':status_colour(deliverable['Status'])}),
+                    html.Div(className='col-auto', children=[
+                        deliverable['DeliverableName'],
+                        html.Span(className='badge', children=[
+                            deliverable['Due']
+                            ], style={
+                                'background-color':status_colour(deliverable['Status']),
+                                'margin-left':'10px'
+                                }
+                        )
+                    ]),
                 ], style={'padding': '5px'}) for deliverable in tip['Deliverables']
             ], style={'padding-left':'5px'}),
         ], style={'margin-left': '10px'}),
