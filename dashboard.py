@@ -8,9 +8,10 @@ from dash.dependencies import Input, Output
 from flask_caching import Cache
 
 import clarizen
-from dash_comps import indicate, progress, circle_graph
 from helper_functions import status_colour
-from components import number_card, tip_card, tip_deliverable_card
+from components import (
+    number_card, tip_card, tip_deliverable_card, indicate, progress, circle_graph
+)
 
 app = dash.Dash(__name__)
 
@@ -116,6 +117,68 @@ def dash_main():
         ]),
     ])
 
+def dash_kpis():
+    """Function to return the TIPs page"""
+    return html.Div(className='page', children=[
+        html.Div(style={'margin':'10px'}, children=[ 
+            html.Div(className='container-fluid', children=[
+                html.Div(className='d-flex', children=[ 
+                    html.H3(className='page-title', children='GAI KPIs'),
+                    html.Div(className='d-flex order-lg-2 ml-auto', children=[
+                        html.Small(className='d-block item-except text-sm text-muted', children=[
+                            "Last Updated: {}".format(tips_data()['updated'])
+                        ]),
+                    ]),
+                ]),
+            ]),
+        ]),
+        html.Div(className='container-fluid', children=[ 
+            html.Div(className='row row-cards', children=[ 
+                html.Div(className='col-6', children=[
+                    html.Div(className='card', children=[
+                        html.Div(className='card-header', children=[
+                            html.H3(className='card-title', children='Employee KPIs')
+                        ]),
+                        html.Div(className='table-responsive', children=[
+                            html.Table(className='table table-hover table-outline table-vcenter card-table', children=[
+                                html.Tr([
+                                    html.Th(x) for x in ['Name', 'Status', 'Manager', 'Status']    
+                                ])] +
+                                [html.Tr([
+                                    html.Td(x['Name']),
+                                    html.Td(indicate(x['TrackStatus']['Name'])),
+                                    html.Td(x['ProjectManager']['Name']),
+                                    html.Td(x['InternalStatus'], style={'color':status_colour(x['TrackStatus']['Name'])}),
+                                ]) for x in tips_data()['kpis']['entities']]
+                            ),
+                        ])
+                    ]),
+                    html.Div(className='card', children=[
+                        html.Div(className='card-header', children=[
+                            html.H3(className='card-title', children='Manager KPIs')
+                        ]),
+                        html.Div(className='table-responsive', children=[
+                            html.Table(className='table table-hover table-outline table-vcenter card-table', children=[
+                                html.Tr([
+                                    html.Th(x) for x in ['Name', 'Status', 'Manager', 'Status']    
+                                ])] +
+                                [html.Tr([
+                                    html.Td(x['Name']),
+                                    html.Td(indicate(x['TrackStatus']['Name'])),
+                                    html.Td(x['ProjectManager']['Name']),
+                                    html.Td(x['InternalStatus'], style={'color':status_colour(x['TrackStatus']['Name'])}),
+                                ]) for x in tips_data()['mkpis']['entities']]
+                            ),
+                        ])
+                    ]),
+                ]),
+                html.Div(className='col-6', children=[
+                    
+                ]),
+            ]),
+        ]),
+    ])
+
 # Setting the apps layout
 # It contains an interval object to refresh the page every hour. 
 # Since the cache is also refreshed every hour, its set to the same value.
@@ -139,7 +202,7 @@ def update_ticker(n, path):
     if path == '/' or path == '/tips':
         return dash_main()
     elif path == '/kpis':
-        return "KPIs - {}".format(n)
+        return dash_kpis()
 
 
 if __name__ == '__main__':
