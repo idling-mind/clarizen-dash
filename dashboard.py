@@ -14,13 +14,17 @@ from components import number_card, tip_card, tip_deliverable_card
 
 app = dash.Dash(__name__)
 
+# Caching is used so that clarizen data doesnt have to be loaded as and when a page request comes in
+# File system caching is used
 cache = Cache(app.server, config={
     'CACHE_TYPE': 'filesystem',
     'CACHE_DIR': 'cache-directory'
 })
 
+# Timeout in seconds
 TIMEOUT = 3600
 
+# The below decorator makes sure that data is reloaded only after TIMEOUT seconds
 @cache.memoize(timeout=TIMEOUT)
 def tips_data():
     projs = clarizen.work_items_by_topic("GAI Strategy Domain")
@@ -34,6 +38,7 @@ def tips_data():
     print("Extracted priority deliverables")
     tipcount = clarizen.tip_count(tips)
     dtotal, dcompleted = clarizen.delivery_count(tips)
+    updated_time = datetime.now().replace(microsecond=0).isoformat(' ')
     return {
         'projs': projs,
         'kpis': kpis,
@@ -43,9 +48,11 @@ def tips_data():
         'tipcount': tipcount,
         'dtotal': dtotal,
         'dcompleted': dcompleted,
+        'updated': updated_time,
     }
 
 def dash_main():
+    """Function to return the TIPs page"""
     return html.Div(className='page', children=[
         html.Div(style={'margin':'10px'}, children=[ 
             html.Div(className='container-fluid', children=[
@@ -53,9 +60,7 @@ def dash_main():
                     html.H3(className='page-title', children='GAI Strategy Matrix 2019'),
                     html.Div(className='d-flex order-lg-2 ml-auto', children=[
                         html.Small(className='d-block item-except text-sm text-muted', children=[
-                            "Last Updated: {}".format(
-                                datetime.now().replace(microsecond=0).isoformat(' ')
-                            )
+                            "Last Updated: {}".format(tips_data()['updated'])
                         ]),
                     ]),
                 ]),
@@ -111,6 +116,11 @@ def dash_main():
         ]),
     ])
 
+# Setting the apps layout
+# It contains an interval object to refresh the page every hour. 
+# Since the cache is also refreshed every hour, its set to the same value.
+# The layout also contains a 'Location' object which will output different layout
+# based on the location requested. KPIs page will have a different URL
 app.layout = html.Div(children=[
     html.Div(id='main', children=[
         dash_main()
@@ -120,12 +130,16 @@ app.layout = html.Div(children=[
         interval=1*1000*60*60,
         n_intervals=0
     ),
+    dcc.Location(id='url', refresh=False),
 ])
 
 @app.callback(Output('main','children'),
-              [Input('interval_comp', 'n_intervals')])
-def update_ticker(n):
-    return dash_main()
+              [Input('interval_comp', 'n_intervals'), Input('url', 'pathname')])
+def update_ticker(n, path):
+    if path == '/' or path == '/tips':
+        return dash_main()
+    elif path == '/kpis':
+        return "KPIs - {}".format(n)
 
 
 if __name__ == '__main__':
