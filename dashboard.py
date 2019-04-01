@@ -1,4 +1,6 @@
+#!/home/yy53393/.conda/envs/dash/bin/python
 import os
+from datetime import datetime
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -45,10 +47,21 @@ def tips_data():
 
 def dash_main():
     return html.Div(className='page', children=[
-        html.Div(className='container-fluid', children=[ 
-            html.Div(className='page-header', children=[
-                html.H3(className='page-title', children='GAI Strategy Matrix 2019')
+        html.Div(style={'margin':'10px'}, children=[ 
+            html.Div(className='container-fluid', children=[
+                html.Div(className='d-flex', children=[ 
+                    html.H3(className='page-title', children='GAI Strategy Matrix 2019'),
+                    html.Div(className='d-flex order-lg-2 ml-auto', children=[
+                        html.Small(className='d-block item-except text-sm text-muted', children=[
+                            "Last Updated: {}".format(
+                                datetime.now().replace(microsecond=0).isoformat(' ')
+                            )
+                        ]),
+                    ]),
+                ]),
             ]),
+        ]),
+        html.Div(className='container-fluid', children=[ 
             html.Div(className='row row-cards', children=[ 
                 html.Div(className='col-6', children=[ 
                     html.Div(className='row', children=[
@@ -63,7 +76,7 @@ def dash_main():
                         ]),
                         html.Div(className='col-12', children=[
                             html.Div(className='card', children=[
-                                html.Div(className='card-header', children=[html.H3(className='card-title', children=['TIP List'])]),
+                                html.Div(className='card-header', children=[html.H3(className='card-title', children=[html.B('TIP List')])]),
                                 html.Div(className='ticker', children=[
                                     html.Ul(className='list-unstyled list-separated', children=[
                                         html.Li(className='list-separated-item', children=[tip_card(tip, domain['Name'])]) for domain in tips_data()['tips']['entities'] for tip in domain['subprojects']
@@ -86,7 +99,7 @@ def dash_main():
                     ] + [
                         html.Div(className='col-lg-12', children=[
                             html.Div(className='card', children=[
-                                html.Div(className='card-header', children="Priority Deliverables"),
+                                html.Div(className='card-header', children=html.B("Priority Deliverables (Overdue or Due in next 30 days)")),
                                 html.Ul(className='list-unstyled list-separated', children=[
                                     html.Li(className='list-separated-item', children=[tip_deliverable_card(x)]) for x in tips_data()['prio_tips']
                                 ]),
@@ -98,7 +111,22 @@ def dash_main():
         ]),
     ])
 
-app.layout = dash_main()
+app.layout = html.Div(children=[
+    html.Div(id='main', children=[
+        dash_main()
+    ]),
+    dcc.Interval(
+        id='interval_comp',
+        interval=1*1000*60*60,
+        n_intervals=0
+    ),
+])
+
+@app.callback(Output('main','children'),
+              [Input('interval_comp', 'n_intervals')])
+def update_ticker(n):
+    return dash_main()
+
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0')
