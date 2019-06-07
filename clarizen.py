@@ -138,13 +138,13 @@ def prio_tips(tips):
                         prio_flag = True
                         if delta.days < 0:
                             status = 'Off Track'
-                            due = "{} days overdue".format(abs(delta.days))
+                            due = "{}".format(abs(delta.days))
                         elif delta.days < 7:
                             status = 'At Risk'
-                            due = "Due in {} days".format(abs(delta.days))
+                            due = "{}".format(abs(delta.days))
                         else:
                             status = 'On Track'
-                            due = "Due in {} days".format(abs(delta.days))
+                            due = "{}".format(abs(delta.days))
                         prio_tip['Deliverables'].append({
                             'DeliverableName': deliverable['Name'],
                             'Status': status,
